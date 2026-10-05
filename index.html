@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healthcare Chatbot - India</title>
+<style>
+    :root {
+      --primary-bg: #fff;
+      --secondary-bg: #f8f9fa;
+      --header-bg: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      --user-msg-bg: #4caf50;
+      --user-msg-color: #fff;
+      --bot-msg-bg: #fff;
+      --bot-msg-color: #333;
+      --alert-bg: #ff5722;
+      --accent: #2196F3;
+    }
+    body.dark {
+      --primary-bg: #1b2029;
+      --secondary-bg: #232936;
+      --header-bg: linear-gradient(135deg, #21262e 0%, #45a049 100%);
+      --user-msg-bg: #43c370;
+      --user-msg-color: #fff;
+      --bot-msg-bg: #242b38;
+      --bot-msg-color: #e3e3e3;
+      --alert-bg: #ff5722;
+      --accent: #90caf9;
+      color: #e3e3e3;
+    }
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      transition: background 0.5s;
+    }
+    .chat-container {
+      background: var(--primary-bg);
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+      width: 100%;
+      max-width: 450px;
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .chat-header {
+      background: var(--header-bg);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+    .chat-header h1 {
+      font-size: 1.4rem;
+      margin-bottom: 5px;
+    }
+    .chat-header .subtitle {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    .language-selector {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255,255,255,0.18);
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all .3s;
+    }
+    .theme-switch {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(255,255,255,0.18);
+      color: #ffeb3b;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      border: none;
+      cursor: pointer;
+      transition: all .3s;
+    }
+    .outbreak-alert {
+      background: var(--alert-bg);
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.85rem;
+      animation: pulse 2s infinite;
+      display: none;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: var(--secondary-bg);
+    }
+    .message {
+      margin-bottom: 17px;
+      display: flex;
+      align-items: flex-end;
+    }
+    .message.user { flex-direction: row-reverse; }
+    .message-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      position: relative;
+      animation: slideIn 0.3s;
+      line-height: 1.5;
+      background: var(--bot-msg-bg);
+      color: var(--bot-msg-color);
+    }
+    .message.user .message-bubble {
+      background: var(--user-msg-bg);
+      color: var(--user-msg-color);
+    }
+    .msg-time {
+      font-size: 0.72em;
+      margin: 0 6px;
+      opacity: 0.62;
+      align-self: flex-end;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(18px);}
+      to   { opacity: 1; transform: translateY(0);}
+    }
+    .quick-replies {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .quick-reply-btn {
+      background: #e3f2fd;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .quick-reply-btn:focus {
+      outline: 2px solid #295f39;
+    }
+    .quick-reply-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    .chat-input-container {
+      padding: 20px;
+      border-top: 1px solid #e0e0e0;
+      background: var(--primary-bg);
+    }
+    .chat-input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #bdbdbd;
+      border-radius: 23px;
+      outline: none;
+      font-size: 1rem;
+      background: var(--secondary-bg);
+      color: inherit;
+      transition: border-color .2s;
+    }
+    .chat-input:focus {
+      border-color: var(--accent);
+    }
+    .send-btn {
+      background: var(--user-msg-bg);
+      color: #fff;
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all .2s;
+    }
+    .send-btn:focus { outline: 2px solid #295f39;}
+    .send-btn:hover {
+      background: #199946;
+    }
+    .send-btn:disabled {
+      background: #aaa;
+      color: #eee;
+      cursor: not-allowed;
+    }
+    .typing-indicator {
+      display: none;
+      padding: 10px 15px;
+      background: var(--bot-msg-bg);
+      border-radius: 16px;
+      margin-bottom: 12px;
+      width: fit-content;
+    }
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: #999;
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typing {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.45;}
+      40% { transform: scale(1); opacity: 1;}
+    }
+    .status-indicator {
+  position: absolute;
+  bottom: 22px;
+  right: 22px;
+  background: #34c759;
+  color: #fff;
+  padding: 8px 24px;
+  border-radius: 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(52,199,89,0.22);
+  user-select: none;
+  animation: fadeIn 0.5s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  min-height: 36px;
+}
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @media (max-width: 480px) {
+      .chat-container { height: 100vh; border-radius: 0; max-width: none; }
+      body { padding: 0; }
+    }
+</style>
+</head>
+<body>
+    <div class="chat-container" role="main" aria-label="Healthcare Chatbot">
+        <div class="chat-header" role="banner">
+            <button class="theme-switch" id="themeSwitchBtn" aria-label="Toggle theme" tabindex="0">☀️</button>
+            <select class="language-selector" id="languageSelect" aria-label="Choose language">
+                <option value="en">English</option>
+                <option value="hihi">हिंदी</option>
+                <option value="mr">मराठी</option>
+            </select>
+            <h1 id="headerTitle">MEDCOP</h1>
+            <div class="subtitle" id="headerSubtitle">Ask about symptoms, vaccines & health alerts</div>
+        </div>
+        <div class="outbreak-alert" id="outbreakAlert" role="alert">
+            ⚠️ Health Alert: Increased dengue cases in your area. Take preventive measures!
+        </div>
+        <div class="chat-messages" id="chatMessages" aria-live="polite" aria-label="Chat history"></div>
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input type="text" class="chat-input" id="messageInput" placeholder="Type your message..." maxlength="55" autocomplete="off" aria-label="Type your message">
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="Send message">➤</button>
+            </div>
+        </div>
+    </div>
+    <script>
+    // same translations and responses as the original code
+    const translations = {
+        en: { headerTitle: "Healthcare Assistant", headerSubtitle: "Ask about symptoms, vaccines & health alerts",
+              welcomeMessage: "Hello! I'm your healthcare assistant. I can help you with disease symptoms, vaccination schedules, and outbreak alerts.",
+              placeholder: "Type your message...", quickReplies: ["Dengue Symptoms", "COVID Vaccine", "Health Alerts"] },
+        hihi: { headerTitle: "स्वास्थ्य सहायक", headerSubtitle: "लक्षण, वैक्सीन और स्वास्थ्य अलर्ट के बारे में पूछें",
+                welcomeMessage: "नमस्ते! मैं आपका स्वास्थ्य सहायक हूं। मैं रोग के लक्षण, टीकाकरण कार्यक्रम और स्वास्थ्य अलर्ट में आपकी मदद कर सकता हूं।",
+                placeholder: "अपना संदेश टाइप करें...", quickReplies: ["डेंगू के लक्षण", "कोविड वैक्सीन", "स्वास्थ्य अलर्ट"] },
+        mr: { headerTitle: "आरोग्य सहाय्यक", headerSubtitle: "लक्षणे, लसी आणि आरोग्य सूचनांबद्दल विचारा",
+              welcomeMessage: "नमस्कार! मी तुमचा आरोग्य सहाय्यक आहे. मी रोगाची लक्षणे, लसीकरण वेळापत्रक आणि आरोग्य सूचना सांगू शकतो.",
+              placeholder: "तुमचा संदेश टाइप करा...", quickReplies: ["डेंग्यूची लक्षणे", "कोविड लस", "आरोग्य सूचना"] }
+    };
+    let currentLanguage = 'en';
+    let messageCount = 0;
+    const responses = {
+        en: { "dengue symptoms": "🦟 Dengue symptoms include: High fever, severe headache, pain behind eyes, muscle/joint pain, and skin rash.",
+              "covid symptoms": "😷 COVID-19 symptoms include: Fever, dry cough, tiredness, loss of taste/smell. Get tested if you feel unwell.",
+              "malaria symptoms": "🦠 Malaria symptoms include: Fever with chills, headache, nausea, vomiting, and fatigue.",
+              "covid vaccine": "💉 Next COVID vaccination is available at centers in your area. Check CoWIN app for booking: https://www.cowin.gov.in/",
+              "health alerts": "🚩 Current health alerts in your area: Increased dengue cases reported. Take preventive measures like using mosquito nets and removing stagnant water.",
+              "default": "I understand you're asking about health. Specify if you want symptoms, vaccines, or health alerts." },
+        hihi: { "dengue symptoms": "डेंगू के लक्षण: तेज बुखार, सिरदर्द, आंखों के पीछे दर्द, मांसपेशियों में दर्द, त्वचा पर लाल चकत्ते। डॉक्टर से संपर्क करें।",
+                "covid symptoms": "कोविड-19 के लक्षण: बुखार, सूखी खांसी, थकान, स्वाद/गंध का जाना। आवश्यक हो तो टेस्ट कराएं।",
+                "malaria symptoms": "मलेरिया के लक्षण: बुखार, ठंड, सिरदर्द, उल्टी, थकावट। इलाज हेतु डॉक्टर से सलाह लें।",
+                "covid vaccine": "आपके क्षेत्र के केंद्रों में कोविड टीकाकरण उपलब्ध है। बुकिंग के लिए CoWIN ऐप देखें।",
+                "health alerts": "अलर्ट: डेंगू के मामले बढ़े, मच्छरदानी का उपयोग करें और पानी न रुकने दें।",
+                "default": "आप स्वास्थ्य संबंधी जानकारी पूछ रहे हैं। कृपया लक्षण, टीकाकरण, या स्वास्थ्य अलर्ट बताएँ।" },
+        mr: { "dengue symptoms": "डेंग्यूची लक्षणे: उच्च तापमान, डोकेदुखी, डोळ्यांमागे वेदना, स्नायुदुखी, त्वचेवर पुरळ. डॉक्टरांना भेटा.",
+              "covid symptoms": "कोविड-१९ ची लक्षणे: ताप, सुक्की खोकला, थकवा, स्वाद/वास वेगळा जाणे. त्रास झाल्यास तपासणी करा.",
+              "malaria symptoms": "मलेरियाची लक्षणे: ताप, थंडी, डोकेदुखी, उलटी, थकवा. डॉक्टरांचा सल्ला घ्या.",
+              "covid vaccine": "तुमच्या भागात कोविड लसीकरण उपलब्ध आहे. बुकिंगसाठी CoWIN अॅप पहा.",
+              "health alerts": "सूचना: डेंग्यूची प्रकरणे वाढली, डासांपासून संरक्षण करा, साचलेले पाणी काढा.",
+              "default": "कृपया लक्षणे, लसीकरण किंवा आरोग्य सूचना स्पष्ट करा." }
+    };
+
+    // Utility: Format current time as HH:MM
+    function getTimeStr() {
+        const d = new Date();
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Theme switch handler
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('themeSwitchBtn').onclick = () => {
+        document.body.classList.toggle('dark');
+        document.getElementById('themeSwitchBtn').textContent = document.body.classList.contains('dark') ? '🌙' : '☀️';
+      };
+    });
+
+    // Accessibility: Focus on language selector after theme change
+    function changeLanguage() {
+        const select = document.getElementById('languageSelect');
+        currentLanguage = select.value;
+        updateUI();
+        document.getElementById('messageInput').focus();
+    }
+    function updateUI() {
+        const trans = translations[currentLanguage];
+        document.getElementById('headerTitle').textContent = trans.headerTitle;
+        document.getElementById('headerSubtitle').textContent = trans.headerSubtitle;
+        document.getElementById('messageInput').placeholder = trans.placeholder;
+        sendBtn.disabled = false;
+        // For accessibility, announce welcome on language switch
+        addMessage(trans.welcomeMessage, 'bot');
+        updateQuickReplies();
+    }
+    function updateQuickReplies() {
+        // Updating quick replies in the welcome bubble (clear old first)
+        const quickRepliesDiv = document.createElement('div');
+        quickRepliesDiv.className = "quick-replies";
+        translations[currentLanguage].quickReplies.forEach((text) => {
+            const btn = document.createElement('button');
+            btn.className = "quick-reply-btn";
+            btn.type = "button";
+            btn.tabIndex = 0;
+            btn.textContent = text;
+            btn.onclick =()=>sendQuickReply(text);
+            quickRepliesDiv.appendChild(btn);
+        });
+        // Replace in the first welcome bot
+        let botMsg = document.querySelector('.chat-messages .message.bot .message-bubble');
+        if (botMsg && botMsg.querySelector('.quick-replies')) {
+            botMsg.removeChild(botMsg.querySelector('.quick-replies'));
+        }
+        if (botMsg) {
+            botMsg.appendChild(quickRepliesDiv);
+        }
+    }
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        if(message) {
+            addMessage(message, 'user');
+            input.value = '';
+            saveChatToStorage();
+            showTypingIndicator();
+            setTimeout(() => {
+                hideTypingIndicator();
+                generateResponse(message);
+                saveChatToStorage();
+            }, 900);
+        }
+    }
+    function sendQuickReply(message) {
+        addMessage(message, 'user');
+        saveChatToStorage();
+        showTypingIndicator();
+        setTimeout(() => {
+            hideTypingIndicator();
+            generateResponse(message);
+            saveChatToStorage();
+        }, 700);
+    }
+    function addMessage(text, sender) {
+        const chatMessages = document.getElementById('chatMessages');
+        let lastMsg = chatMessages.lastChild;
+        // Msg container
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        // Message bubble (supports basic emojis)
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'message-bubble';
+        // Insert as HTML for emoji support
+        bubbleDiv.innerHTML = text;
+        // Timestamp
+        const timeDiv = document.createElement('span');
+        timeDiv.className = 'msg-time';
+        timeDiv.textContent = getTimeStr();
+        bubbleDiv.appendChild(timeDiv);
+
+        messageDiv.appendChild(bubbleDiv);
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function generateResponse(userMessage) {
+        messageCount++;
+        const currentResponses = responses[currentLanguage];
+        let response = currentResponses.default;
+        const msg = userMessage.toLowerCase();
+        // Simple keyword matching demo
+        if(msg.includes('dengue') || msg.includes('डेंगू') || msg.includes('डेंग्यू')){
+            response = currentResponses["dengue symptoms"];
+        }else if(msg.includes('covid') || msg.includes('कोविड') || msg.includes('कोरोना')) {
+            if(msg.includes('vaccine') || msg.includes('वैक्सीन') || msg.includes('लस')){
+                response = currentResponses["covid vaccine"];
+            }else{
+                response = currentResponses["covid symptoms"] || currentResponses.default;
+            }
+        }else if(msg.includes('malaria') || msg.includes('मलेरिया')){
+            response = currentResponses["malaria symptoms"] || currentResponses.default;
+        }else if(msg.includes('vaccine') || msg.includes('vaccination') || msg.includes('वैक्सीन') || msg.includes('लस')){
+            response = currentResponses["covid vaccine"];
+        }else if(msg.includes('alert') || msg.includes('outbreak') || msg.includes('अलर्ट') || msg.includes('सूचना')){
+            response = currentResponses["health alerts"];
+            // Show outbreak alert banner after 3rd message
+            if(messageCount >= 3) showOutbreakAlert();
+        }
+        addMessage(response, 'bot');
+        // Show quick replies after symptom responses
+        if(response.includes('symptoms') || response.includes('लक्षण')){
+            setTimeout(() => addQuickRepliesMessage(), 800);
+        }
+    }
+    function addQuickRepliesMessage() {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot';
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'message-bubble';
+        const quickRepliesText = (currentLanguage === 'en')
+            ? 'Would you like to know more about:'
+            : currentLanguage === 'hihi'
+                ? 'क्या आप इसके बारे में और जानना चाहेंगे:'
+                : 'तुम्हाला यांच्याबद्दल अधिक जाणून घ्यायचे आहे का:';
+        bubbleDiv.innerHTML = `
+            <span>${quickRepliesText}</span>
+            <div class="quick-replies">
+                <button class="quick-reply-btn" onclick="sendQuickReply('Prevention tips')">🦟 Prevention</button>
+                <button class="quick-reply-btn" onclick="sendQuickReply('Nearest hospital')">🏥 Hospital</button>
+                <button class="quick-reply-btn" onclick="sendQuickReply('More symptoms')">ℹ️ More Info</button>
+            </div>
+        `;
+        messageDiv.appendChild(bubbleDiv);
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function showTypingIndicator() {
+        let ind = document.getElementById('typingIndicator');
+        if (!ind) {
+            ind = document.createElement('div');
+            ind.id = 'typingIndicator';
+            ind.className = 'typing-indicator';
+            ind.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+            document.getElementById('chatMessages').appendChild(ind);
+        }
+        ind.style.display = 'block';
+        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    }
+    function hideTypingIndicator() {
+        let ind = document.getElementById('typingIndicator');
+        if (ind) ind.style.display = 'none';
+    }
+    function showOutbreakAlert() {
+        const alertEl = document.getElementById('outbreakAlert');
+        alertEl.style.display = 'block';
+        setTimeout(() => {
+            alertEl.style.display = 'none';
+        }, 8000);
+    }
+    // Save/load chat from localStorage
+    function saveChatToStorage() {
+        const chatMessages = document.getElementById('chatMessages');
+        localStorage.setItem('chatbotHistory', chatMessages.innerHTML);
+    }
+    function loadChatFromStorage() {
+        const chatHtml = localStorage.getItem('chatbotHistory');
+        if (chatHtml) document.getElementById('chatMessages').innerHTML = chatHtml;
+    }
+    // Startup
+    document.getElementById('languageSelect').addEventListener('change', changeLanguage);
+    document.getElementById('messageInput').addEventListener('keypress', function(e){
+        if(e.key === 'Enter') sendMessage();
+    });
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.disabled = false;
+
+    setTimeout(() => document.getElementById('statusIndicator').textContent = 'Online', 600);
+    setTimeout(showOutbreakAlert, 5000);
+
+    // On load: restore chat history, language and show welcome if empty
+    if(localStorage.getItem('chatbotHistory')){
+        loadChatFromStorage();
+    } else {
+        addMessage(translations[currentLanguage].welcomeMessage, 'bot');
+        updateQuickReplies();
+    }
+    </script>
+</body>
+</html>
